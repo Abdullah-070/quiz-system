@@ -10,6 +10,7 @@ import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import QuestionBrowser from './pages/QuestionBrowser';
+import QuestionDetail from './pages/QuestionDetail';
 import QuizzesPage from './pages/Quizzes';
 import QuizInterface from './pages/QuizInterface';
 import Leaderboard from './pages/Leaderboard';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/questions" element={<QuestionBrowser />} />
+            <Route path="/question/:id" element={<QuestionDetail />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             
             <Route 
