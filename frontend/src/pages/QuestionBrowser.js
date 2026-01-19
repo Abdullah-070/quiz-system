@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { questionsAPI } from '../services/api';
 import QuestionCard from '../components/QuestionCard';
 
@@ -14,15 +14,7 @@ const QuestionBrowser = () => {
     search: '',
   });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, itemsPerPage]);
-
-  useEffect(() => {
-    fetchQuestions();
-  }, [filters, currentPage, itemsPerPage]);
-
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
       const offset = (currentPage - 1) * itemsPerPage;
@@ -39,7 +31,15 @@ const QuestionBrowser = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, filters]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, itemsPerPage]);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
