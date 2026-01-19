@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { questionsAPI } from '../services/api';
 
@@ -10,11 +10,7 @@ const QuestionDetail = () => {
   const [showSolution, setShowSolution] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
 
-  useEffect(() => {
-    fetchQuestion();
-  }, [id]);
-
-  const fetchQuestion = async () => {
+  const fetchQuestion = useCallback(async () => {
     try {
       setLoading(true);
       const response = await questionsAPI.getById(id);
@@ -24,7 +20,11 @@ const QuestionDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchQuestion();
+  }, [fetchQuestion]);
 
   if (loading) {
     return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
