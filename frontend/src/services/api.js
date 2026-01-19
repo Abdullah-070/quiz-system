@@ -18,6 +18,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Authentication API
+export const loginWithEmailPassword = (username, password) =>
+  api.post('/auth/login/', { username, password });
+
+export const registerUser = (data) =>
+  api.post('/auth/register/', data);
+
+export const fetchCurrentUser = () =>
+  api.get('/auth/current-user/');
+
+export const requestPasswordReset = (email) =>
+  api.post('/auth/password-reset-request/', { email });
+
+export const confirmPasswordReset = (uid, token, password, password_confirm) =>
+  api.post('/auth/password-reset-confirm/', { uid, token, password, password_confirm });
+
 // Questions API
 export const questionsAPI = {
   getAll: (params) => api.get('/questions/', { params }),

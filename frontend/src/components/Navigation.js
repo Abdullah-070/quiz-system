@@ -1,6 +1,9 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
-const Navigation = ({ user, onLogout }) => {
+const Navigation = () => {
+  const { user, logout } = useAuth();
+
   return (
     <nav className="bg-white shadow-md">
       <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -18,18 +21,23 @@ const Navigation = ({ user, onLogout }) => {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <span className="text-sm text-gray-600">{user.email}</span>
+              <span className="text-sm text-gray-600">{user.email || user.username}</span>
               <button
-                onClick={onLogout}
+                onClick={logout}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
               >
                 Logout
               </button>
             </>
           ) : (
-            <a href="/login" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Login
-            </a>
+            <>
+              <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                Login
+              </a>
+              <a href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Sign Up
+              </a>
+            </>
           )}
         </div>
       </div>

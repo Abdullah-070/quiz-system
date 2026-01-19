@@ -1,8 +1,14 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
@@ -14,7 +20,9 @@ from .models import (
 from .serializers import (
     QuestionSerializer, QuestionDetailSerializer, QuizSerializer,
     QuizDetailSerializer, QuizSessionSerializer, AnswerSerializer,
-    UserProfileSerializer, BookmarkSerializer, LeaderboardSerializer
+    UserProfileSerializer, BookmarkSerializer, LeaderboardSerializer,
+    UserRegistrationSerializer, PasswordResetRequestSerializer,
+    PasswordResetSerializer
 )
 
 
@@ -253,3 +261,131 @@ class LeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
         ).order_by('rank')[:10]
         serializer = self.get_serializer(leaders, many=True)
         return Response(serializer.data)
+
+
+# Authentication Endpoints
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    """User registration with email and password"""
+    serializer = UserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request):
+    """User login with email/username and password"""
+    username_or_email = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username_or_email or not password:
+        return Response(
+            {'error': 'Username/email and password required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Try to find user by username or email
+    try:
+        user = User.objects.get(Q(username=username_or_email) | Q(email=username_or_email))
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Invalid username/email or password'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    # Check password
+    if not user.check_password(password):
+        return Response(
+            {'error': 'Invalid username/email or password'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        },
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    """Request password reset email"""
+    serializer = PasswordResetRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        user = User.objects.get(email=email)
+        # In production, send email with reset link
+        # For now, return token (frontend will use this)
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        return Response({
+            'message': 'Password reset token generated',
+            'uid': uid,
+            'token': token,
+        })
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    """Confirm password reset with token"""
+    serializer = PasswordResetSerializer(data=request.data)
+    if serializer.is_valid():
+        try:
+            uid = urlsafe_base64_decode(serializer.validated_data['uid']).decode()
+            user = User.objects.get(pk=uid)
+            token = serializer.validated_data['token']
+            
+            if default_token_generator.check_token(user, token):
+                user.set_password(serializer.validated_data['password'])
+                user.save()
+                return Response({'message': 'Password reset successful'})
+            else:
+                return Response(
+                    {'error': 'Invalid token'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except (User.DoesNotExist, ValueError):
+            return Response(
+                {'error': 'Invalid user'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    """Get current authenticated user"""
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    })

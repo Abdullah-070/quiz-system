@@ -6,6 +6,8 @@ import { AuthProvider } from './context/AuthContext';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import QuestionBrowser from './pages/QuestionBrowser';
 import QuizzesPage from './pages/Quizzes';
@@ -27,6 +29,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/questions" element={<QuestionBrowser />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             
