@@ -8,7 +8,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-test-key-change-in-pr
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+# Allow Render domains and local development
+ALLOWED_HOSTS_STR = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,*.onrender.com')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',')]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
