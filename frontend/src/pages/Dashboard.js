@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { profileAPI, sessionsAPI } from '../services/api';
 import StatsCard from '../components/StatsCard';
 import RecentQuizzes from '../components/RecentQuizzes';
@@ -7,6 +8,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDashboardData();
@@ -39,7 +41,15 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Dashboard</h1>
+        <button
+          onClick={() => navigate('/create-quiz')}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-lg"
+        >
+          + Create New Quiz
+        </button>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

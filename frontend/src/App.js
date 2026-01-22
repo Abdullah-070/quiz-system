@@ -13,6 +13,8 @@ import QuestionBrowser from './pages/QuestionBrowser';
 import QuestionDetail from './pages/QuestionDetail';
 import QuizzesPage from './pages/Quizzes';
 import QuizInterface from './pages/QuizInterface';
+import QuizBuilder from './pages/QuizBuilder';
+import QuizAttempt from './pages/QuizAttempt';
 import Leaderboard from './pages/Leaderboard';
 
 // Components
@@ -39,6 +41,14 @@ function App() {
             <Route 
               path="/dashboard" 
               element={<PrivateRoute><Dashboard /></PrivateRoute>} 
+            />
+            <Route 
+              path="/create-quiz" 
+              element={<PrivateRoute><QuizBuilder /></PrivateRoute>} 
+            />
+            <Route 
+              path="/attempt/:sessionId" 
+              element={<PrivateRoute><QuizAttempt /></PrivateRoute>} 
             />
             <Route 
               path="/quizzes" 

@@ -56,6 +56,7 @@ export const sessionsAPI = {
   getById: (id) => api.get(`/sessions/${id}/`),
   submitAnswer: (id, data) => api.post(`/sessions/${id}/submit_answer/`, data),
   finish: (id) => api.post(`/sessions/${id}/finish/`),
+  createCustomSession: (data) => api.post('/sessions/create_custom/', data),
 };
 
 // User Profile API

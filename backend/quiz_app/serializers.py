@@ -129,15 +129,17 @@ class AnswerSerializer(serializers.ModelSerializer):
 
 
 class QuizSessionSerializer(serializers.ModelSerializer):
-    quiz_name = serializers.CharField(source='quiz.name', read_only=True)
+    quiz_name = serializers.CharField(source='quiz.name', read_only=True, allow_null=True)
+    questions = QuestionDetailSerializer(many=True, read_only=True)
     answers = AnswerSerializer(many=True, read_only=True)
     
     class Meta:
         model = QuizSession
         fields = [
-            'id', 'quiz', 'quiz_name', 'status', 'total_score',
-            'total_questions', 'correct_answers', 'wrong_answers',
-            'accuracy', 'time_spent', 'time_started', 'time_ended', 'answers'
+            'id', 'quiz', 'quiz_name', 'title', 'quiz_type', 'time_limit',
+            'status', 'total_score', 'total_questions', 'correct_answers', 
+            'wrong_answers', 'accuracy', 'time_spent', 'time_started', 
+            'time_ended', 'questions', 'answers'
         ]
 
 

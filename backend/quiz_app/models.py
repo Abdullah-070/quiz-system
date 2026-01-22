@@ -118,8 +118,20 @@ class QuizSession(models.Model):
         ('abandoned', 'Abandoned'),
     ]
     
+    QUIZ_TYPE_CHOICES = [
+        ('practice', 'Practice'),
+        ('timed', 'Timed'),
+        ('mock', 'Mock Test'),
+    ]
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_sessions')
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, null=True, blank=True)
+    questions = models.ManyToManyField(Question, related_name='quiz_sessions')
+    
+    # Quiz metadata
+    title = models.CharField(max_length=255, default='Quiz')
+    quiz_type = models.CharField(max_length=20, choices=QUIZ_TYPE_CHOICES, default='practice')
+    time_limit = models.IntegerField(default=0, help_text="Time limit in minutes, 0 = no limit")
     
     status = models.CharField(max_length=20, choices=SESSION_STATUS_CHOICES, default='started')
     

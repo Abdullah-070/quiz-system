@@ -133,6 +133,45 @@ class QuizSessionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return QuizSession.objects.filter(user=self.request.user)
     
+    @action(detail=False, methods=['post'])
+    def create_custom(self, request):
+        """Create a custom quiz session with selected questions"""
+        question_ids = request.data.get('questions', [])
+        quiz_type = request.data.get('quiz_type', 'practice')
+        time_limit = request.data.get('time_limit', 0)
+        title = request.data.get('title', 'Custom Quiz')
+        
+        if not question_ids:
+            return Response(
+                {'error': 'At least one question is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get questions
+        questions = Question.objects.filter(id__in=question_ids)
+        if not questions.exists():
+            return Response(
+                {'error': 'No valid questions found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create quiz session
+        session = QuizSession.objects.create(
+            user=request.user,
+            title=title,
+            quiz_type=quiz_type,
+            time_limit=time_limit,
+            total_questions=len(question_ids),
+            status='in_progress'
+        )
+        
+        # Attach questions to session
+        session.questions.set(questions)
+        
+        # Return session with questions
+        serializer = QuizSessionSerializer(session)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
     @action(detail=True, methods=['post'])
     def submit_answer(self, request, pk=None):
         """Submit an answer to a question in the session"""
