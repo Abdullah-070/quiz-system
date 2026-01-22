@@ -269,6 +269,53 @@ class QuizSessionViewSet(viewsets.ModelViewSet):
         profile.last_practice_date = timezone.now()
         profile.save()
         
+        # Update leaderboard entries for different periods
+        from datetime import timedelta
+        from django.utils import timezone as tz
+        from .models import Leaderboard
+        
+        now = tz.now()
+        periods_data = {
+            'week': now - timedelta(days=7),
+            'month': now - timedelta(days=30),
+            'all_time': None
+        }
+        
+        for period, start_date in periods_data.items():
+            # Get all sessions for user in this period
+            if period == 'all_time':
+                user_sessions = QuizSession.objects.filter(user=request.user, status='completed')
+            else:
+                user_sessions = QuizSession.objects.filter(
+                    user=request.user, 
+                    status='completed',
+                    time_ended__gte=start_date
+                )
+            
+            if user_sessions.exists():
+                total_score = sum(s.total_score for s in user_sessions)
+                total_questions = sum(s.total_questions for s in user_sessions)
+                total_correct = sum(s.correct_answers for s in user_sessions)
+                accuracy = (total_correct / total_questions * 100) if total_questions > 0 else 0
+                
+                # Update or create leaderboard entry
+                leaderboard, _ = Leaderboard.objects.get_or_create(
+                    user=request.user,
+                    period=period,
+                    defaults={
+                        'rank': 1,
+                        'score': total_score,
+                        'questions_solved': total_questions,
+                        'accuracy': accuracy
+                    }
+                )
+                
+                # Update existing entry
+                leaderboard.score = total_score
+                leaderboard.questions_solved = total_questions
+                leaderboard.accuracy = accuracy
+                leaderboard.save()
+        
         serializer = QuizSessionSerializer(session)
         return Response(serializer.data)
 
