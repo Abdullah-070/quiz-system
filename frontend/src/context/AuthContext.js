@@ -17,8 +17,8 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       // Fetch current user info
       fetchCurrentUser()
-        .then(userData => {
-          setUser(userData);
+        .then(response => {
+          setUser(response.data);
         })
         .catch(err => {
           localStorage.removeItem('access_token');
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await loginWithEmailPassword(username, password);
-      login(response.access, response.user);
+      login(response.data.access, response.data.user);
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Login failed';
       setError(errorMsg);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await registerUser(userData);
-      login(response.access, response.user);
+      login(response.data.access, response.data.user);
     } catch (err) {
       const errorMsg = err.response?.data?.email?.[0] || err.response?.data?.username?.[0] || 'Registration failed';
       setError(errorMsg);
