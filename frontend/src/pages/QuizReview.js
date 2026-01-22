@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sessionsAPI } from '../services/api';
 
@@ -9,11 +9,7 @@ const QuizReview = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    fetchQuizReview();
-  }, [sessionId]);
-
-  const fetchQuizReview = async () => {
+  const fetchQuizReview = useCallback(async () => {
     try {
       setLoading(true);
       const response = await sessionsAPI.review(sessionId);
@@ -23,7 +19,11 @@ const QuizReview = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
+
+  useEffect(() => {
+    fetchQuizReview();
+  }, [fetchQuizReview]);
 
   if (loading) {
     return <div className="max-w-6xl mx-auto p-6">Loading quiz details...</div>;
