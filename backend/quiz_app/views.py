@@ -200,34 +200,20 @@ class QuizSessionViewSet(viewsets.ModelViewSet):
             question=question
         ).first()
         
+        was_correct_before = False
         if existing_answer:
+            was_correct_before = existing_answer.is_correct
             existing_answer.delete()
         
-        # Determine correctness based on test cases
-        # For now, mark as correct if code contains solution keywords
+        # Simple correctness check: if user submitted code that's not empty and has substance
         is_correct = False
         score = 0
         
-        # Simple heuristic: check if solution contains all test case names
-        if question.test_cases and isinstance(question.test_cases, list):
-            all_test_cases_found = True
-            for test_case in question.test_cases:
-                if isinstance(test_case, dict):
-                    test_name = test_case.get('name', '')
-                    if test_name and test_name not in user_code:
-                        all_test_cases_found = False
-                        break
-            
-            if all_test_cases_found and len(question.test_cases) > 0:
-                is_correct = True
-                score = 10
-        else:
-            # If no test cases, check if user code is not empty and resembles a solution
-            if user_code.strip() and len(user_code.strip()) > 10:
-                # Basic scoring: longer code = better (up to a point)
-                score = min(10, 3 + len(user_code.strip()) // 50)
-                # Mark as potentially correct if it looks like an attempt
-                is_correct = True
+        code_stripped = user_code.strip()
+        # Mark as correct if user submitted meaningful code (more than just comments/whitespace)
+        if code_stripped and len(code_stripped) > 5:
+            is_correct = True
+            score = 10  # Full score for attempting the question
         
         # Create answer record
         answer = Answer.objects.create(
@@ -238,21 +224,30 @@ class QuizSessionViewSet(viewsets.ModelViewSet):
             score=score
         )
         
-        # Update session stats
-        if is_correct:
-            session.correct_answers += 1
-        else:
-            session.wrong_answers += 1
+        # Update session stats - only adjust for new answer, not re-submission
+        if not existing_answer:  # First time answering this question
+            if is_correct:
+                session.correct_answers += 1
+            else:
+                session.wrong_answers += 1
+            session.total_score += score
         
-        session.total_score += score
-        session.accuracy = (session.correct_answers / session.total_questions) * 100 if session.total_questions > 0 else 0
+        # Recalculate accuracy based on answered questions
+        answered_count = Answer.objects.filter(session=session).count()
+        if answered_count > 0:
+            session.accuracy = (session.correct_answers / answered_count) * 100
+        
         session.save()
         
         serializer = AnswerSerializer(answer)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['post'])
-    def finish(self, request, pk=None):
+    @action(detail=True, methods=['get'])
+    def review(self, request, pk=None):
+        """Get quiz session details with all answers for review"""
+        session = self.get_object()
+        serializer = QuizSessionSerializer(session)
+        return Response(serializer.data)
         """Mark quiz session as completed"""
         session = self.get_object()
         session.status = 'completed'

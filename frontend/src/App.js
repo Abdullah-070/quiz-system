@@ -15,6 +15,7 @@ import QuizzesPage from './pages/Quizzes';
 import QuizInterface from './pages/QuizInterface';
 import QuizBuilder from './pages/QuizBuilder';
 import QuizAttempt from './pages/QuizAttempt';
+import QuizReview from './pages/QuizReview';
 import Leaderboard from './pages/Leaderboard';
 
 // Components
@@ -49,6 +50,10 @@ function App() {
             <Route 
               path="/attempt/:sessionId" 
               element={<PrivateRoute><QuizAttempt /></PrivateRoute>} 
+            />
+            <Route 
+              path="/quiz-review/:sessionId" 
+              element={<PrivateRoute><QuizReview /></PrivateRoute>} 
             />
             <Route 
               path="/quizzes" 
