@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { questionsAPI } from '../services/api';
 
 const QuestionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSolution, setShowSolution] = useState(false);
@@ -25,6 +26,15 @@ const QuestionDetail = () => {
   useEffect(() => {
     fetchQuestion();
   }, [fetchQuestion]);
+
+  const handleBack = () => {
+    // Go back to questions with filters preserved
+    if (location.state?.from === '/questions') {
+      navigate('/questions', { state: { filters: location.state?.filters } });
+    } else {
+      navigate(-1);
+    }
+  };
 
   if (loading) {
     return <div className="max-w-4xl mx-auto p-6">Loading...</div>;
@@ -50,7 +60,7 @@ const QuestionDetail = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <button
-        onClick={() => navigate(-1)}
+        onClick={handleBack}
         className="mb-6 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2"
       >
         ← Back

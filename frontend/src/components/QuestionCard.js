@@ -1,8 +1,9 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const QuestionCard = ({ question }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const difficultyColor = {
     easy: 'text-green-600 bg-green-100',
@@ -10,9 +11,16 @@ const QuestionCard = ({ question }) => {
     hard: 'text-red-600 bg-red-100',
   };
 
+  const handleClick = () => {
+    // Pass current filter state to QuestionDetail
+    navigate(`/question/${question.id}`, { 
+      state: { from: '/questions', filters: location.state?.filters } 
+    });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
-         onClick={() => navigate(`/question/${question.id}`)}>
+         onClick={handleClick}>
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-lg font-bold">{question.title}</h3>
         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${difficultyColor[question.difficulty]}`}>

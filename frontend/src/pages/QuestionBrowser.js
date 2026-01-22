@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { questionsAPI } from '../services/api';
 import QuestionCard from '../components/QuestionCard';
 
 const QuestionBrowser = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -129,7 +132,9 @@ const QuestionBrowser = () => {
           <div className="text-center py-8">No questions found</div>
         ) : (
           displayedQuestions.map(question => (
-            <QuestionCard key={question.id} question={question} />
+            <div key={question.id} onClick={() => navigate(`/question/${question.id}`, { state: { from: '/questions', filters } })}>
+              <QuestionCard question={question} />
+            </div>
           ))
         )}
       </div>

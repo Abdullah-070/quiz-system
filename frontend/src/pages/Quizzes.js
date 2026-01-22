@@ -1,85 +1,90 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { quizzesAPI } from '../services/api';
 
 const QuizzesPage = () => {
-  const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [quizType, setQuizType] = useState('practice');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchQuizzes();
-  }, [quizType]);
-
-  const fetchQuizzes = async () => {
-    try {
-      setLoading(true);
-      const response = await quizzesAPI.byType(quizType);
-      setQuizzes(response.data);
-    } catch (error) {
-      console.error('Error fetching quizzes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-8">Quizzes</h1>
+      <h1 className="text-4xl font-bold mb-8">Create & Take Quizzes</h1>
 
-      {/* Type Selector */}
-      <div className="flex gap-4 mb-8">
-        {['practice', 'timed', 'mock'].map(type => (
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Create Custom Quiz */}
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-8 text-white">
+          <div className="text-4xl mb-4">🎯</div>
+          <h2 className="text-2xl font-bold mb-3">Create Custom Quiz</h2>
+          <p className="text-blue-100 mb-6">
+            Build your own quiz by selecting questions from any category. Choose difficulty levels, number of questions, and quiz type.
+          </p>
           <button
-            key={type}
-            onClick={() => setQuizType(type)}
-            className={`px-6 py-2 rounded-lg font-medium ${
-              quizType === type
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-            }`}
+            onClick={() => navigate('/create-quiz')}
+            className="w-full bg-white text-blue-600 py-3 rounded-lg font-bold hover:bg-blue-50 transition-all"
           >
-            {type.charAt(0).toUpperCase() + type.slice(1)}
+            Create Quiz
           </button>
-        ))}
+        </div>
+
+        {/* Practice Mode Info */}
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-8 text-white">
+          <div className="text-4xl mb-4">📚</div>
+          <h2 className="text-2xl font-bold mb-3">Browse Questions</h2>
+          <p className="text-green-100 mb-6">
+            Explore our question bank with 2000+ interview questions across DSA, OOP, Database & SQL, and Functional Programming.
+          </p>
+          <button
+            onClick={() => navigate('/questions')}
+            className="w-full bg-white text-green-600 py-3 rounded-lg font-bold hover:bg-green-50 transition-all"
+          >
+            Question Bank
+          </button>
+        </div>
       </div>
 
-      {/* Quizzes Grid */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {loading ? (
-          <div className="text-center py-8">Loading...</div>
-        ) : quizzes.length === 0 ? (
-          <div className="text-center py-8">No quizzes available</div>
-        ) : (
-          quizzes.map(quiz => (
-            <div key={quiz.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg">
-              <h3 className="text-2xl font-bold mb-2">{quiz.name}</h3>
-              <p className="text-gray-600 mb-4">{quiz.description}</p>
-              
-              <div className="flex gap-2 mb-4">
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                  {quiz.questions_count} questions
-                </span>
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                  {quiz.difficulty}
-                </span>
-                {quiz.time_limit > 0 && (
-                  <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm">
-                    {quiz.time_limit} min
-                  </span>
-                )}
-              </div>
+      {/* How It Works */}
+      <div className="mt-12 bg-white rounded-lg shadow-md p-8">
+        <h3 className="text-2xl font-bold mb-6">How to Get Started</h3>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="text-center">
+            <div className="text-4xl mb-3">1️⃣</div>
+            <h4 className="font-bold mb-2">Select Options</h4>
+            <p className="text-gray-600">Choose category, difficulty, number of questions, and quiz type</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-3">2️⃣</div>
+            <h4 className="font-bold mb-2">Pick Questions</h4>
+            <p className="text-gray-600">Select specific questions or use random selection from your category</p>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-3">3️⃣</div>
+            <h4 className="font-bold mb-2">Attempt Quiz</h4>
+            <p className="text-gray-600">Write code in the editor and submit your answers. Track your progress!</p>
+          </div>
+        </div>
+      </div>
 
-              <button
-                onClick={() => navigate(`/quiz/${quiz.id}`)}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium"
-              >
-                Start Quiz
-              </button>
-            </div>
-          ))
-        )}
+      {/* Quiz Types */}
+      <div className="mt-12 bg-gray-50 rounded-lg shadow-md p-8">
+        <h3 className="text-2xl font-bold mb-6">Quiz Types</h3>
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg p-6 border-2 border-gray-200">
+            <h4 className="text-xl font-bold mb-3">🏆 Practice Mode</h4>
+            <p className="text-gray-600">
+              Learn at your own pace with no time limit. Perfect for understanding concepts and practicing solutions.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-6 border-2 border-orange-200">
+            <h4 className="text-xl font-bold mb-3">⏱️ Timed Quiz</h4>
+            <p className="text-gray-600">
+              Challenge yourself with a time limit. Build speed and accuracy for real interviews.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-6 border-2 border-red-200">
+            <h4 className="text-xl font-bold mb-3">🎓 Mock Test</h4>
+            <p className="text-gray-600">
+              Simulate a real interview experience with realistic conditions and comprehensive assessment.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

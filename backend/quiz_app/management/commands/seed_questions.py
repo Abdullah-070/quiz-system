@@ -111,6 +111,7 @@ class Command(BaseCommand):
         for q_data in sample_questions:
             question, created = Question.objects.get_or_create(
                 title=q_data['title'],
+                topic=q_data['topic'],  # Include topic in unique check
                 defaults=q_data
             )
             
