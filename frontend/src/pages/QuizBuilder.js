@@ -15,7 +15,6 @@ const QuizBuilder = () => {
     timeLimit: 60, // minutes for timed quizzes
     title: '',
   });
-  const [session, setSession] = useState(null);
 
   const categories = ['dsa', 'oop', 'dbs', 'pf'];
   const quizTypes = [
