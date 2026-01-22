@@ -94,7 +94,6 @@ const QuizBuilder = () => {
         category: quizConfig.category,
       });
       
-      setSession(sessionRes.data);
       navigate(`/attempt/${sessionRes.data.id}`);
     } catch (error) {
       console.error('Error creating quiz session:', error);
