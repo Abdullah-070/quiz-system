@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { questionsAPI } from '../services/api';
 import QuestionCard from '../components/QuestionCard';
 
 const QuestionBrowser = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [filters, setFilters] = useState({
-    difficulty: '',
-    topic: '',
-    search: '',
+    difficulty: searchParams.get('difficulty') || '',
+    topic: searchParams.get('topic') || '',
+    search: searchParams.get('search') || '',
   });
 
   const fetchQuestions = useCallback(async () => {
@@ -45,7 +46,17 @@ const QuestionBrowser = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    const updatedFilters = { ...filters, [name]: value };
+    setFilters(updatedFilters);
+    
+    // Update URL with new filters
+    const params = new URLSearchParams();
+    if (updatedFilters.difficulty) params.append('difficulty', updatedFilters.difficulty);
+    if (updatedFilters.topic) params.append('topic', updatedFilters.topic);
+    if (updatedFilters.search) params.append('search', updatedFilters.search);
+    
+    const queryString = params.toString();
+    navigate(`/questions${queryString ? '?' + queryString : ''}`, { replace: true });
   };
 
   const handleItemsPerPageChange = (e) => {
@@ -130,11 +141,18 @@ const QuestionBrowser = () => {
         ) : displayedQuestions.length === 0 ? (
           <div className="text-center py-8">No questions found</div>
         ) : (
-          displayedQuestions.map(question => (
-            <div key={question.id} onClick={() => navigate(`/question/${question.id}`, { state: { from: '/questions', filters } })}>
-              <QuestionCard question={question} />
-            </div>
-          ))
+          displayedQuestions.map(question => {
+            const queryString = new URLSearchParams({
+              ...(filters.difficulty && { difficulty: filters.difficulty }),
+              ...(filters.topic && { topic: filters.topic }),
+              ...(filters.search && { search: filters.search }),
+            }).toString();
+            return (
+              <div key={question.id} onClick={() => navigate(`/question/${question.id}?${queryString}`)}>
+                <QuestionCard question={question} />
+              </div>
+            );
+          })
         )}
       </div>
 

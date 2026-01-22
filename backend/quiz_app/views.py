@@ -194,17 +194,57 @@ class QuizSessionViewSet(viewsets.ModelViewSet):
         
         question = get_object_or_404(Question, id=question_id)
         
+        # Check if answer already exists for this question
+        existing_answer = Answer.objects.filter(
+            session=session,
+            question=question
+        ).first()
+        
+        if existing_answer:
+            existing_answer.delete()
+        
+        # Determine correctness based on test cases
+        # For now, mark as correct if code contains solution keywords
+        is_correct = False
+        score = 0
+        
+        # Simple heuristic: check if solution contains all test case names
+        if question.test_cases and isinstance(question.test_cases, list):
+            all_test_cases_found = True
+            for test_case in question.test_cases:
+                if isinstance(test_case, dict):
+                    test_name = test_case.get('name', '')
+                    if test_name and test_name not in user_code:
+                        all_test_cases_found = False
+                        break
+            
+            if all_test_cases_found and len(question.test_cases) > 0:
+                is_correct = True
+                score = 10
+        else:
+            # If no test cases, check if user code is not empty and resembles a solution
+            if user_code.strip() and len(user_code.strip()) > 10:
+                # Basic scoring: longer code = better (up to a point)
+                score = min(10, 3 + len(user_code.strip()) // 50)
+                # Mark as potentially correct if it looks like an attempt
+                is_correct = True
+        
         # Create answer record
         answer = Answer.objects.create(
             session=session,
             question=question,
             user_code=user_code,
-            is_correct=True,  # Simplified - implement actual test execution
-            score=10  # Simplified scoring
+            is_correct=is_correct,
+            score=score
         )
         
-        session.correct_answers += 1
-        session.total_score += answer.score
+        # Update session stats
+        if is_correct:
+            session.correct_answers += 1
+        else:
+            session.wrong_answers += 1
+        
+        session.total_score += score
         session.accuracy = (session.correct_answers / session.total_questions) * 100 if session.total_questions > 0 else 0
         session.save()
         
@@ -220,8 +260,17 @@ class QuizSessionViewSet(viewsets.ModelViewSet):
         session.save()
         
         # Update user profile
-        profile = request.user.profile
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        
+        # Update profile stats
         profile.total_quizzes_completed += 1
+        profile.total_correct_answers += session.correct_answers
+        profile.total_questions_solved += session.total_questions
+        
+        # Calculate overall accuracy
+        if profile.total_questions_solved > 0:
+            profile.overall_accuracy = (profile.total_correct_answers / profile.total_questions_solved) * 100
+        
         profile.last_practice_date = timezone.now()
         profile.save()
         

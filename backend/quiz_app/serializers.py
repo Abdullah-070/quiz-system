@@ -129,7 +129,7 @@ class AnswerSerializer(serializers.ModelSerializer):
 
 
 class QuizSessionSerializer(serializers.ModelSerializer):
-    quiz_name = serializers.CharField(source='quiz.name', read_only=True, allow_null=True)
+    quiz_name = serializers.SerializerMethodField()
     questions = QuestionDetailSerializer(many=True, read_only=True)
     answers = AnswerSerializer(many=True, read_only=True)
     
@@ -141,6 +141,12 @@ class QuizSessionSerializer(serializers.ModelSerializer):
             'wrong_answers', 'accuracy', 'time_spent', 'time_started', 
             'time_ended', 'questions', 'answers'
         ]
+    
+    def get_quiz_name(self, obj):
+        # Use title for custom quizzes or quiz.name for predefined quizzes
+        if obj.title:
+            return obj.title
+        return obj.quiz.name if obj.quiz else 'Quiz'
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { questionsAPI } from '../services/api';
 
 const QuestionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSolution, setShowSolution] = useState(false);
@@ -28,12 +28,18 @@ const QuestionDetail = () => {
   }, [fetchQuestion]);
 
   const handleBack = () => {
-    // Go back to questions with filters preserved
-    if (location.state?.from === '/questions') {
-      navigate('/questions', { state: { filters: location.state?.filters } });
-    } else {
-      navigate(-1);
-    }
+    // Reconstruct filter query params from URL and go back to questions
+    const params = new URLSearchParams();
+    const difficulty = searchParams.get('difficulty');
+    const topic = searchParams.get('topic');
+    const search = searchParams.get('search');
+    
+    if (difficulty) params.append('difficulty', difficulty);
+    if (topic) params.append('topic', topic);
+    if (search) params.append('search', search);
+    
+    const queryString = params.toString();
+    navigate(`/questions${queryString ? '?' + queryString : ''}`);
   };
 
   if (loading) {
