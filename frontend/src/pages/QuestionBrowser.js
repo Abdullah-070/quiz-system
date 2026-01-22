@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { questionsAPI } from '../services/api';
 import QuestionCard from '../components/QuestionCard';
 
 const QuestionBrowser = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
