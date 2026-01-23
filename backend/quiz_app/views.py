@@ -494,8 +494,6 @@ def google_login(request):
                 first_name=display_name.split()[0] if display_name else '',
                 last_name=' '.join(display_name.split()[1:]) if len(display_name.split()) > 1 else '',
             )
-            # Create user profile
-            UserProfile.objects.create(user=user)
         
         # Update user info if provided
         if display_name:
@@ -504,9 +502,8 @@ def google_login(request):
             user.last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
             user.save()
         
-        # Ensure user profile exists
-        if not hasattr(user, 'userprofile'):
-            UserProfile.objects.create(user=user)
+        # Ensure user profile exists (use get_or_create to avoid UNIQUE constraint error)
+        UserProfile.objects.get_or_create(user=user)
         
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
