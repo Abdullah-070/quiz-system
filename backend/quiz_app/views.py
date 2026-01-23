@@ -401,6 +401,8 @@ def register(request):
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
+        # Create UserProfile
+        UserProfile.objects.create(user=user)
         refresh = RefreshToken.for_user(user)
         return Response({
             'user': {
@@ -445,6 +447,63 @@ def login(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
     
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        },
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login(request):
+    """Google OAuth login - creates or updates user"""
+    email = request.data.get('email')
+    display_name = request.data.get('display_name', '')
+    
+    if not email:
+        return Response(
+            {'error': 'Email is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Try to get existing user
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        # Create new user from Google OAuth
+        username = email.split('@')[0]
+        # Make username unique if it already exists
+        base_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=display_name.split()[0] if display_name else '',
+            last_name=' '.join(display_name.split()[1:]) if len(display_name.split()) > 1 else '',
+        )
+        # Create user profile
+        UserProfile.objects.create(user=user)
+    
+    # Update user info if provided
+    if display_name:
+        name_parts = display_name.split()
+        user.first_name = name_parts[0] if name_parts else ''
+        user.last_name = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
+        user.save()
+    
+    # Generate JWT tokens
     refresh = RefreshToken.for_user(user)
     return Response({
         'user': {

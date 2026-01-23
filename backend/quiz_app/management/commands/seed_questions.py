@@ -598,7 +598,7 @@ for val in result:
         # Add DSA questions (cycling through data)
         for i in range(500):
             q = self.dsa_data[i % len(self.dsa_data)].copy()
-            q['title'] = f"{q['title']} (DSA-{i+1})"
+            q['title'] = q['title']
             q['topic'] = 'dsa'
             q['category'] = 'dsa'
             q['difficulty'] = ['easy', 'medium', 'hard'][i % 3]
@@ -609,7 +609,7 @@ for val in result:
         # Add OOP questions
         for i in range(500):
             q = self.oop_data[i % len(self.oop_data)].copy()
-            q['title'] = f"{q['title']} (OOP-{i+1})"
+            q['title'] = q['title']
             q['topic'] = 'oop'
             q['category'] = 'oop'
             q['difficulty'] = ['easy', 'medium', 'hard'][i % 3]
@@ -620,7 +620,7 @@ for val in result:
         # Add DBS questions
         for i in range(500):
             q = self.dbs_data[i % len(self.dbs_data)].copy()
-            q['title'] = f"{q['title']} (DBS-{i+1})"
+            q['title'] = q['title']
             q['topic'] = 'dbs'
             q['category'] = 'dbs'
             q['difficulty'] = ['easy', 'medium', 'hard'][i % 3]
@@ -631,7 +631,7 @@ for val in result:
         # Add PF questions
         for i in range(500):
             q = self.pf_data[i % len(self.pf_data)].copy()
-            q['title'] = f"{q['title']} (PF-{i+1})"
+            q['title'] = q['title']
             q['topic'] = 'pf'
             q['category'] = 'pf'
             q['difficulty'] = ['easy', 'medium', 'hard'][i % 3]

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginWithEmailPassword, registerUser, fetchCurrentUser } from '../services/api';
+import { loginWithEmailPassword, registerUser, fetchCurrentUser, googleAuthLogin, requestPasswordReset, confirmPasswordReset } from '../services/api';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import app from '../firebaseConfig';
 
 // Simple auth context
 export const AuthContext = React.createContext();
@@ -49,6 +51,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleSignIn = async (idToken, firebaseUser) => {
+    try {
+      setError(null);
+      const response = await googleAuthLogin(idToken, firebaseUser.email, firebaseUser.displayName || '');
+      login(response.data.access, response.data.user);
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Google sign-in failed';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
   const signup = async (userData) => {
     try {
       setError(null);
@@ -56,6 +70,20 @@ export const AuthProvider = ({ children }) => {
       login(response.data.access, response.data.user);
     } catch (err) {
       const errorMsg = err.response?.data?.email?.[0] || err.response?.data?.username?.[0] || 'Registration failed';
+      setError(errorMsg);
+      throw err;
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      setError(null);
+      const auth = getAuth(app);
+      await sendPasswordResetEmail(auth, email);
+      setError(null);
+      return { success: true, message: 'Password reset email sent. Check your inbox.' };
+    } catch (err) {
+      const errorMsg = err.message || 'Password reset failed';
       setError(errorMsg);
       throw err;
     }
@@ -69,7 +97,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login: emailPasswordLogin, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login: emailPasswordLogin, googleLogin: googleSignIn, signup, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

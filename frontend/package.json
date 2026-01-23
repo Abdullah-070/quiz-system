@@ -3,23 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "axios": "^1.6.0",
-    "ace-builds": "^1.32.0",
-    "react-ace": "^10.1.0",
-    "chart.js": "^4.4.0",
-    "react-chartjs-2": "^5.2.0",
     "@react-oauth/google": "^0.12.1",
+    "ace-builds": "^1.32.0",
+    "axios": "^1.6.0",
+    "chart.js": "^4.4.0",
+    "firebase": "^12.8.0",
+    "react": "^18.2.0",
+    "react-ace": "^10.1.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
+    "react-router-dom": "^6.20.0",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.0"
   },
   "devDependencies": {
-    "react-scripts": "5.0.1",
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "@types/react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { requestPasswordReset, confirmPasswordReset } from '../services/api';
+import { sendPasswordResetEmail, confirmPasswordReset, getAuth } from 'firebase/auth';
+import app from '../firebaseConfig';
 import './Auth.css';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: request, 2: reset
+  const [step, setStep] = useState(1); // 1: request, 2: confirm
   const [email, setEmail] = useState('');
-  const [resetData, setResetData] = useState({
-    password: '',
-    password_confirm: '',
-  });
-  const [uid, setUid] = useState('');
-  const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
@@ -27,42 +27,25 @@ const ForgotPassword = () => {
       return;
     }
 
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await requestPasswordReset(email);
-      setUid(response.data.uid);
-      setToken(response.data.token);
-      setSuccess('Password reset token sent! Check your email or use the token below.');
+      const auth = getAuth(app);
+      await sendPasswordResetEmail(auth, email);
+      setSuccess('Password reset email sent! Check your inbox for the reset link.');
       setStep(2);
     } catch (err) {
-      setError(err.response?.data?.email?.[0] || 'Failed to request password reset');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResetSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (resetData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-
-    if (resetData.password !== resetData.password_confirm) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await confirmPasswordReset(uid, token, resetData.password, resetData.password_confirm);
-      setSuccess('Password reset successfully! You can now login with your new password.');
-      setTimeout(() => navigate('/login'), 2000);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reset password');
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email address');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address');
+      } else {
+        setError(err.message || 'Failed to send password reset email');
+      }
     } finally {
       setLoading(false);
     }
@@ -72,10 +55,18 @@ const ForgotPassword = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h2>Reset Password</h2>
-        <p className="auth-subtitle">Get back into your account</p>
+        <p className="auth-subtitle">Enter your email to receive a password reset link</p>
 
         {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        {success && <div style={{
+          padding: '12px 16px',
+          backgroundColor: '#d4edda',
+          border: '1px solid #c3e6cb',
+          borderRadius: '8px',
+          color: '#155724',
+          marginBottom: '20px',
+          fontSize: '14px'
+        }}>{success}</div>}
 
         {step === 1 ? (
           <form onSubmit={handleRequestSubmit} className="auth-form">
@@ -85,7 +76,10 @@ const ForgotPassword = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
                 placeholder="your@email.com"
                 disabled={loading}
                 autoFocus
@@ -97,40 +91,24 @@ const ForgotPassword = () => {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleResetSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="password">New Password</label>
-              <input
-                id="password"
-                type="password"
-                value={resetData.password}
-                onChange={(e) => setResetData({ ...resetData, password: e.target.value })}
-                placeholder="Enter new password"
-                disabled={loading}
-                autoFocus
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="password_confirm">Confirm Password</label>
-              <input
-                id="password_confirm"
-                type="password"
-                value={resetData.password_confirm}
-                onChange={(e) => setResetData({ ...resetData, password_confirm: e.target.value })}
-                placeholder="Confirm new password"
-                disabled={loading}
-              />
-            </div>
-
-            <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? 'Resetting...' : 'Reset Password'}
-            </button>
-          </form>
+          <div style={{
+            padding: '16px',
+            backgroundColor: '#e7f3ff',
+            border: '1px solid #b3d9ff',
+            borderRadius: '8px',
+            color: '#004085'
+          }}>
+            <h3 style={{ marginTop: 0 }}>✓ Email Sent</h3>
+            <p>We've sent a password reset link to <strong>{email}</strong>.</p>
+            <p>Click the link in the email to reset your password.</p>
+            <p style={{ fontSize: '13px', marginBottom: 0 }}>
+              <em>If you don't see the email, check your spam folder.</em>
+            </p>
+          </div>
         )}
 
         <div className="auth-links">
-          <p><Link to="/login">Back to Login</Link></p>
+          <p><Link to="/login" className="link">← Back to Login</Link></p>
         </div>
       </div>
     </div>
