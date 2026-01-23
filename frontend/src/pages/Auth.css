@@ -142,6 +142,42 @@
   cursor: not-allowed;
 }
 
+.google-button {
+  width: 100%;
+  padding: 12px 24px;
+  background: white;
+  color: #1a202c;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.google-button:hover:not(:disabled) {
+  background: #f7fafc;
+  border-color: #a0aec0;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-button svg {
+  width: 20px;
+  height: 20px;
+  color: #1a202c;
+}
+
 .auth-divider {
   text-align: center;
   color: #a0aec0;
@@ -207,46 +243,6 @@
 .link:hover {
   color: #764ba2;
   text-decoration: underline;
-}
-
-/* Google Button Styling */
-.google-button {
-  width: 100%;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #3c4043;
-  background-color: #f9f9f9;
-  border: 1px solid #dadce0;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  transition: all 0.3s ease;
-  margin: 16px 0;
-}
-
-.google-button:hover {
-  background-color: #f8f8f8;
-  border-color: #b3b6b7;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.google-button:active {
-  background-color: #f3f3f3;
-}
-
-.google-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.google-button svg {
-  width: 20px;
-  height: 20px;
-  color: #3c4043;
 }
 
 /* Mobile responsive */

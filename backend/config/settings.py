@@ -109,10 +109,21 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'https://quiz-system-78263.web.app',
     'https://quiz-system-78263.firebaseapp.com',
-    'https://*.firebaseapp.com',
 ]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
 
 # Google OAuth
 SOCIALACCOUNT_PROVIDERS = {
