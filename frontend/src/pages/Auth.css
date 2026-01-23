@@ -209,6 +209,46 @@
   text-decoration: underline;
 }
 
+/* Google Button Styling */
+.google-button {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #3c4043;
+  background-color: #f9f9f9;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  margin: 16px 0;
+}
+
+.google-button:hover {
+  background-color: #f8f8f8;
+  border-color: #b3b6b7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.google-button:active {
+  background-color: #f3f3f3;
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-button svg {
+  width: 20px;
+  height: 20px;
+  color: #3c4043;
+}
+
 /* Mobile responsive */
 @media (max-width: 480px) {
   .auth-card {
