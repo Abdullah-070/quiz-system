@@ -48,7 +48,7 @@ Value: False
 **2. SECRET_KEY**
 ```
 Key: SECRET_KEY
-Value: [Leave empty - Render will auto-generate]
+Value: elc2t@v7**09*zyeibknrh_$d8dl^lc@%*j7h)u7y1(*2$o6vs
 ```
 
 **3. ALLOWED_HOSTS**
