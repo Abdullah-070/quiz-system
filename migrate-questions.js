@@ -13,7 +13,7 @@ const serviceAccountKey = require('./serviceAccountKey.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccountKey),
-  projectId: 'quiz-system-78263',
+  projectId: 'quiz-system-e9cfb',
 });
 
 const db = admin.firestore();

@@ -28,7 +28,7 @@ except ImportError:
 # Initialize Firebase Admin SDK
 try:
     cred = credentials.Certificate('serviceAccountKey.json')
-    firebase_admin.initialize_app(cred)
+    firebase_admin.initialize_app(cred, {'projectId': 'quiz-system-e9cfb'})
     db = firestore.client()
     print("✅ Firebase initialized")
 except Exception as e:
