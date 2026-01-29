@@ -23,7 +23,7 @@ import json
 with open('serviceAccountKey.json') as f:
     service_account_info = json.load(f)
 
-# Create Firestore client for quiz-db explicitly  
+# Create Firestore client for DEFAULT database
 scopes = [
     'https://www.googleapis.com/auth/cloud-platform',
     'https://www.googleapis.com/auth/datastore',
@@ -31,7 +31,7 @@ scopes = [
 sa_creds = ServiceAccountCredentials.from_service_account_info(service_account_info, scopes=scopes)
 
 from google.cloud.firestore import Client as FirestoreClient
-db = FirestoreClient(project='quiz-system-e9cfb', credentials=sa_creds, database='quiz-db')
+db = FirestoreClient(project='quiz-system-e9cfb', credentials=sa_creds)
 
 # Comprehensive interview questions (200+ covering multiple topics)
 interview_questions = [
