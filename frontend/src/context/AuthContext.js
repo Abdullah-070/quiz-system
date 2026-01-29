@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginWithEmailPassword, registerUser, fetchCurrentUser, googleAuthLogin, requestPasswordReset, confirmPasswordReset } from '../services/api';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { 
+  getAuth, 
+  sendPasswordResetEmail,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
 import app from '../firebaseConfig';
+import { createUserProfile, getUserProfile } from '../services/firestore';
 
 // Simple auth context
 export const AuthContext = React.createContext();
@@ -12,40 +19,53 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const auth = getAuth(app);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      // Fetch current user info
-      fetchCurrentUser()
-        .then(response => {
-          setUser(response.data);
-        })
-        .catch(err => {
-          localStorage.removeItem('access_token');
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userProfile = await getUserProfile(firebaseUser.uid);
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            ...userProfile,
+          });
+        } catch (err) {
+          console.error('Error loading user profile:', err);
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+          });
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
-    }
-  }, []);
+    });
 
-  const login = (token, userData) => {
-    localStorage.setItem('access_token', token);
+    return unsubscribe;
+  }, [auth]);
+
+  const login = (userData) => {
     setUser(userData);
     setError(null);
     navigate('/dashboard');
   };
 
-  const emailPasswordLogin = async (username, password) => {
+  const emailPasswordLogin = async (email, password) => {
     try {
       setError(null);
-      const response = await loginWithEmailPassword(username, password);
-      login(response.data.access, response.data.user);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userProfile = await getUserProfile(userCredential.user.uid);
+      login({
+        id: userCredential.user.uid,
+        email: userCredential.user.email,
+        ...userProfile,
+      });
     } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Login failed';
+      const errorMsg = err.message || 'Login failed';
       setError(errorMsg);
       throw err;
     }
@@ -54,10 +74,27 @@ export const AuthProvider = ({ children }) => {
   const googleSignIn = async (idToken, firebaseUser) => {
     try {
       setError(null);
-      const response = await googleAuthLogin(idToken, firebaseUser.email, firebaseUser.displayName || '');
-      login(response.data.access, response.data.user);
+      // Firebase handles Google sign-in
+      // Just get or create user profile
+      let userProfile = await getUserProfile(firebaseUser.uid);
+      
+      if (!userProfile) {
+        // Create new profile
+        await createUserProfile(firebaseUser.uid, {
+          email: firebaseUser.email,
+          firstName: firebaseUser.displayName?.split(' ')[0] || '',
+          lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+        });
+        userProfile = await getUserProfile(firebaseUser.uid);
+      }
+
+      login({
+        id: firebaseUser.uid,
+        email: firebaseUser.email,
+        ...userProfile,
+      });
     } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Google sign-in failed';
+      const errorMsg = err.message || 'Google sign-in failed';
       setError(errorMsg);
       throw err;
     }
@@ -66,10 +103,28 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       setError(null);
-      const response = await registerUser(userData);
-      login(response.data.access, response.data.user);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        userData.email,
+        userData.password
+      );
+
+      // Create user profile in Firestore
+      await createUserProfile(userCredential.user.uid, {
+        email: userData.email,
+        username: userData.username,
+        firstName: userData.first_name || '',
+        lastName: userData.last_name || '',
+      });
+
+      const userProfile = await getUserProfile(userCredential.user.uid);
+      login({
+        id: userCredential.user.uid,
+        email: userCredential.user.email,
+        ...userProfile,
+      });
     } catch (err) {
-      const errorMsg = err.response?.data?.email?.[0] || err.response?.data?.username?.[0] || 'Registration failed';
+      const errorMsg = err.message || 'Registration failed';
       setError(errorMsg);
       throw err;
     }
@@ -78,9 +133,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (email) => {
     try {
       setError(null);
-      const auth = getAuth(app);
       await sendPasswordResetEmail(auth, email);
-      setError(null);
       return { success: true, message: 'Password reset email sent. Check your inbox.' };
     } catch (err) {
       const errorMsg = err.message || 'Password reset failed';
@@ -89,11 +142,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    setUser(null);
-    setError(null);
-    navigate('/');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      setError(null);
+      navigate('/');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
 
   return (
